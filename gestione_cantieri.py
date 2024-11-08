@@ -79,34 +79,45 @@ mezzi_df, cantieri_df = carica_dati()
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Barra di navigazione fissa in linea
+# Barra di navigazione fissa nella parte superiore
 st.markdown(
     """
     <style>
-    .bottom-bar {
+    .top-bar {
         position: fixed;
-        bottom: 0;
+        top: 0;
         width: 100%;
         display: flex;
         justify-content: space-evenly;
-        background-color: #f0f0f0;
+        background-color: #ffffff;
         padding: 10px 0;
-        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        z-index: 1000;
     }
-    .bottom-bar button {
+    .top-bar button {
         flex: 1;
         font-size: 18px;
         margin: 0 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    .top-bar button:hover {
+        text-decoration: underline;
     }
     </style>
-    <div class="bottom-bar">
-        <button onclick="window.location.href='/Home'">🏠 Home</button>
-        <button onclick="window.location.href='/Gestione_Mezzi'">🔄 Gestione Mezzi</button>
-        <button onclick="window.location.href='/Gestione_Cantieri'">🏗️ Gestione Cantieri</button>
+    <div class="top-bar">
+        <button onclick="window.location.href='?pagina=Home'">🏠 Home</button>
+        <button onclick="window.location.href='?pagina=Gestione_Mezzi'">🔄 Gestione Mezzi</button>
+        <button onclick="window.location.href='?pagina=Gestione_Cantieri'">🏗️ Gestione Cantieri</button>
     </div>
     """,
     unsafe_allow_html=True
 )
+
+# Aggiorna la pagina in base al valore di st.session_state
+if st.experimental_get_query_params().get("pagina"):
+    st.session_state["pagina"] = st.experimental_get_query_params().get("pagina")[0]
 
 # Pagina Home
 if st.session_state["pagina"] == "Home":
@@ -146,4 +157,5 @@ elif st.session_state["pagina"] == "Gestione Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+
 
