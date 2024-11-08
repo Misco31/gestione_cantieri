@@ -79,18 +79,18 @@ mezzi_df, cantieri_df = carica_dati()
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Barra di navigazione fissa nella parte superiore
+# Barra di navigazione fissa nella parte superiore con solo icone
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("🏠 Home"):
+    if st.button("🏠"):
         st.session_state["pagina"] = "Home"
 with col2:
-    if st.button("🔄 Gestione Mezzi"):
+    if st.button("🔄"):
         st.session_state["pagina"] = "Gestione Mezzi"
 with col3:
-    if st.button("🏗️ Gestione Cantieri"):
+    if st.button("🏗️"):
         st.session_state["pagina"] = "Gestione Cantieri"
 
 st.markdown("---")
