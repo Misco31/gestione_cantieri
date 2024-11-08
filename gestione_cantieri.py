@@ -48,9 +48,25 @@ def aggiungi_mezzo(cantieri_df, id_cantiere, id_mezzo):
             cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"] = ",".join(mezzi_ids)
             salva_cantieri(cantieri_df)
             st.success(f"✅ Mezzo '{id_mezzo}' aggiunto con successo!")
-            st.experimental_rerun()
+            st.session_state.clear()  # Ricarica la pagina
     except Exception as e:
         st.error(f"Errore durante l'aggiunta del mezzo: {e}")
+
+# Funzione per rimuovere un mezzo da un cantiere
+def rimuovi_mezzo(cantieri_df, id_cantiere, id_mezzo):
+    try:
+        mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"].values[0]
+        if pd.isna(mezzi_ids) or mezzi_ids == "":
+            return
+        mezzi_ids = mezzi_ids.split(",")
+        if id_mezzo in mezzi_ids:
+            mezzi_ids.remove(id_mezzo)
+            cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"] = ",".join(mezzi_ids)
+            salva_cantieri(cantieri_df)
+            st.success(f"❌ Mezzo '{id_mezzo}' rimosso con successo!")
+            st.session_state.clear()  # Ricarica la pagina
+    except Exception as e:
+        st.error(f"Errore durante la rimozione del mezzo: {e}")
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
@@ -83,13 +99,18 @@ else:
 st.subheader("➕ Aggiungi Mezzo")
 categoria_mezzo = st.selectbox("🗂️ Categoria del mezzo", mezzi_df["Categoria"].unique())
 mezzi_filtrati = mezzi_df[mezzi_df["Categoria"] == categoria_mezzo]
-mezzo_selezionato = st.selectbox("🚜 Seleziona il mezzo", mezzi_filtrati["ID"].tolist(), format_func=lambda x: f"{x} - {mezzi_df[mezzi_df['ID'] == x]['Nome'].values[0]}")
+mezzo_selezionato = st.selectbox("🚜 Seleziona il mezzo", mezzi_filtrati.apply(lambda x: f"{x['ID']} - {x['Nome']}", axis=1).tolist())
 id_mezzo = mezzo_selezionato.split(" - ")[0]
 
-if st.button("Aggiungi Mezzo", help="Aggiungi il mezzo selezionato"):
+if st.button("Aggiungi Mezzo"):
     aggiungi_mezzo(cantieri_df, cantiere_selezionato, id_mezzo)
 
-# Debug per visualizzare i dati caricati
-st.write("Debug - Mezzi DataFrame:", mezzi_df)
-st.write("Debug - Cantieri DataFrame:", cantieri_df)
+# Rimozione di un mezzo dal cantiere
+st.subheader("➖ Rimuovi Mezzo")
+if not mezzi_assegnati_df.empty:
+    mezzo_da_rimuovere = st.selectbox("🚜 Seleziona il mezzo da rimuovere", mezzi_assegnati_df.apply(lambda x: f"{x['ID']} - {x['Nome']}", axis=1).tolist())
+    id_mezzo_rimuovere = mezzo_da_rimuovere.split(" - ")[0]
+
+    if st.button("Rimuovi Mezzo"):
+        rimuovi_mezzo(cantieri_df, cantiere_selezionato, id_mezzo_rimuovere)
 
