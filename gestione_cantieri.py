@@ -50,7 +50,6 @@ def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
     st.success(f"✅ Mezzo '{id_mezzo}' spostato al cantiere '{cantiere_destinazione}'.")
     st.session_state.clear()
 
-
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
     try:
@@ -68,11 +67,10 @@ def aggiungi_cantiere(cantieri_df, nome):
     except Exception as e:
         st.error(f"Errore durante l'aggiunta del cantiere: {e}")
 
-
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
 
-# Menu di Navigazione
+# Menu di Navigazione con chiusura automatica
 st.sidebar.markdown("### 📋 Menu di Navigazione")
 if st.sidebar.button("🏠 Home"):
     st.session_state["pagina"] = "Home"
@@ -83,7 +81,6 @@ if st.sidebar.button("🔄 Gestione Mezzi"):
 if st.sidebar.button("🏗️ Gestione Cantieri"):
     st.session_state["pagina"] = "Gestione Cantieri"
     st.set_page_config(initial_sidebar_state="collapsed")
-
 
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
