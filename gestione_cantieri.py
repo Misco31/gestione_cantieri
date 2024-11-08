@@ -2,8 +2,22 @@ import streamlit as st
 import pandas as pd
 
 # Carica i dati dai file CSV
-mezzi_df = pd.read_csv("mezzi.csv")
-cantieri_df = pd.read_csv("cantieri.csv")
+try:
+    mezzi_df = pd.read_csv("mezzi.csv")
+    cantieri_df = pd.read_csv("cantieri.csv")
+    st.write("Dati caricati con successo!")
+except Exception as e:
+    st.error("Errore nel caricamento dei file CSV: " + str(e))
+    st.stop()
+
+# Verifica che i DataFrame non siano vuoti
+if mezzi_df.empty:
+    st.warning("Il file 'mezzi.csv' è vuoto. Aggiungi almeno un mezzo.")
+    st.stop()
+
+if cantieri_df.empty:
+    st.warning("Il file 'cantieri.csv' è vuoto. Aggiungi almeno un cantiere.")
+    st.stop()
 
 # Funzione per salvare il file CSV aggiornato
 def salva_cantieri():
