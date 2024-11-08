@@ -33,18 +33,26 @@ def mostra_mezzi_assegnati(cantieri_df, mezzi_df, id_cantiere):
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
     try:
+        # Genera un nuovo ID per il cantiere
         nuovo_id = int(cantieri_df["id_cantiere"].max()) + 1 if not cantieri_df.empty else 1
-        nuovo_cantiere = {
+
+        # Crea il nuovo cantiere come DataFrame
+        nuovo_cantiere = pd.DataFrame([{
             "id_cantiere": nuovo_id,
             "nome_cantiere": nome,
             "stato": "Aperto",
             "mezzi_assegnati": ""
-        }
-        cantieri_df = cantieri_df.append(nuovo_cantiere, ignore_index=True)
+        }])
+
+        # Concatena il nuovo cantiere al DataFrame esistente
+        cantieri_df = pd.concat([cantieri_df, nuovo_cantiere], ignore_index=True)
+
+        # Salva il DataFrame aggiornato
         salva_cantieri(cantieri_df)
         st.success(f"✅ Cantiere '{nome}' aggiunto con successo!")
     except Exception as e:
         st.error(f"Errore durante l'aggiunta del cantiere: {e}")
+
 
 # Funzione per chiudere un cantiere
 def chiudi_cantiere(cantieri_df, id_cantiere):
