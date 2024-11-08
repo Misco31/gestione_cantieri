@@ -5,14 +5,17 @@ import pandas as pd
 st.set_page_config(page_title="Gestione Cantieri", layout="centered")
 
 # Funzione per caricare i dati dai file CSV
-def carica_dati():
-    try:
-        mezzi_df = pd.read_csv("mezzi.csv", dtype=str)
-        cantieri_df = pd.read_csv("cantieri.csv", dtype=str)
-        return mezzi_df, cantieri_df
-    except Exception as e:
-        st.error(f"Errore nel caricamento dei file CSV: {e}")
-        st.stop()
+# Carica i dati
+mezzi_df, cantieri_df = carica_dati()
+
+# Verifica se i dataframe sono vuoti
+if cantieri_df.empty:
+    st.warning("Il file 'cantieri.csv' è vuoto o non contiene dati validi.")
+    st.stop()
+
+if mezzi_df.empty:
+    st.warning("Il file 'mezzi.csv' è vuoto o non contiene dati validi.")
+    st.stop()
 
 # Funzione per salvare i dati aggiornati
 def salva_cantieri(cantieri_df):
