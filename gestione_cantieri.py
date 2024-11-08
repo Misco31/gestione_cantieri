@@ -101,7 +101,7 @@ if pagina == "Home":
     categorie = mezzi_df["Categoria"].unique()
     for categoria in categorie:
         st.header(f"Categoria: {categoria}")
-        mezzi_categoria = mezzi_df[mezzi_df["Categoria"] == categoria]
+        mezzi_categoria = mezzi_df[mezzi_df["Categoa"] == categoria]
 
         if mezzi_categoria.empty:
             st.markdown("*Nessun mezzo disponibile in questa categoria.*")
