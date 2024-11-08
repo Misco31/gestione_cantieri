@@ -80,44 +80,20 @@ if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
 # Barra di navigazione fissa nella parte superiore
-st.markdown(
-    """
-    <style>
-    .top-bar {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        display: flex;
-        justify-content: space-evenly;
-        background-color: #ffffff;
-        padding: 10px 0;
-        border-bottom: 1px solid #ccc;
-        z-index: 1000;
-    }
-    .top-bar button {
-        flex: 1;
-        font-size: 18px;
-        margin: 0 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-    .top-bar button:hover {
-        text-decoration: underline;
-    }
-    </style>
-    <div class="top-bar">
-        <button onclick="window.location.href='?pagina=Home'">🏠 Home</button>
-        <button onclick="window.location.href='?pagina=Gestione_Mezzi'">🔄 Gestione Mezzi</button>
-        <button onclick="window.location.href='?pagina=Gestione_Cantieri'">🏗️ Gestione Cantieri</button>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("---")
+col1, col2, col3 = st.columns(3)
 
-# Aggiorna la pagina in base al valore di st.session_state
-if st.experimental_get_query_params().get("pagina"):
-    st.session_state["pagina"] = st.experimental_get_query_params().get("pagina")[0]
+with col1:
+    if st.button("🏠 Home"):
+        st.session_state["pagina"] = "Home"
+with col2:
+    if st.button("🔄 Gestione Mezzi"):
+        st.session_state["pagina"] = "Gestione Mezzi"
+with col3:
+    if st.button("🏗️ Gestione Cantieri"):
+        st.session_state["pagina"] = "Gestione Cantieri"
+
+st.markdown("---")
 
 # Pagina Home
 if st.session_state["pagina"] == "Home":
