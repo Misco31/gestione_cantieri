@@ -1,33 +1,28 @@
 import streamlit as st
 import pandas as pd
 
-# Configurazione per dispositivi mobili
-st.set_page_config(page_title="Gestione Cantieri", layout="centered", initial_sidebar_state="collapsed")
+# Configurazione dell'app per dispositivi mobili
+st.set_page_config(page_title="Gestione Cantieri", layout="centered", initial_sidebar_state="expanded")
 
 # Funzione per caricare i dati dai file CSV
 def carica_dati():
     try:
         mezzi_df = pd.read_csv("mezzi.csv", dtype=str)
         cantieri_df = pd.read_csv("cantieri.csv", dtype=str)
-        st.write("Dati caricati con successo.")
         return mezzi_df, cantieri_df
     except Exception as e:
         st.error(f"Errore nel caricamento dei file CSV: {e}")
         st.stop()
 
-# Funzione per salvare il file CSV aggiornato
+# Funzione per salvare i dati aggiornati
 def salva_cantieri(cantieri_df):
     try:
         cantieri_df.to_csv("cantieri.csv", index=False)
-        st.write("Dati salvati correttamente.")
     except Exception as e:
         st.error(f"Errore nel salvataggio del file CSV: {e}")
 
 # Funzione per mostrare i mezzi assegnati a un cantiere
 def mostra_mezzi_assegnati(cantieri_df, mezzi_df, id_cantiere):
-    if "mezzi_assegnati" not in cantieri_df.columns:
-        st.error("Colonna 'mezzi_assegnati' non trovata.")
-        return pd.DataFrame(columns=["ID", "Nome"])
     mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"].values
     if len(mezzi_ids) == 0 or pd.isna(mezzi_ids[0]) or mezzi_ids[0] == "":
         return pd.DataFrame(columns=["ID", "Nome"])
@@ -35,82 +30,68 @@ def mostra_mezzi_assegnati(cantieri_df, mezzi_df, id_cantiere):
     mezzi_assegnati = mezzi_df[mezzi_df["ID"].isin(mezzi_ids)]
     return mezzi_assegnati[["ID", "Nome"]]
 
-# Funzione per aggiungere un mezzo a un cantiere
-def aggiungi_mezzo(cantieri_df, id_cantiere, id_mezzo):
-    try:
-        mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"].values[0]
-        if pd.isna(mezzi_ids) or mezzi_ids == "":
-            mezzi_ids = []
-        else:
-            mezzi_ids = mezzi_ids.split(",")
-        if id_mezzo not in mezzi_ids:
-            mezzi_ids.append(id_mezzo)
-            cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"] = ",".join(mezzi_ids)
-            salva_cantieri(cantieri_df)
-            st.success(f"✅ Mezzo '{id_mezzo}' aggiunto con successo!")
-            st.session_state.clear()  # Ricarica la pagina
-    except Exception as e:
-        st.error(f"Errore durante l'aggiunta del mezzo: {e}")
-
-# Funzione per rimuovere un mezzo da un cantiere
-def rimuovi_mezzo(cantieri_df, id_cantiere, id_mezzo):
-    try:
-        mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"].values[0]
-        if pd.isna(mezzi_ids) or mezzi_ids == "":
-            return
+# Funzione per spostare un mezzo in un altro cantiere
+def sposta_mezzo(cantieri_df, id_mezzo, cantiere_attuale, cantiere_destinazione):
+    mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_attuale, "mezzi_assegnati"].values[0]
+    if pd.isna(mezzi_ids) or mezzi_ids == "":
+        mezzi_ids = []
+    else:
         mezzi_ids = mezzi_ids.split(",")
-        if id_mezzo in mezzi_ids:
-            mezzi_ids.remove(id_mezzo)
-            cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"] = ",".join(mezzi_ids)
-            salva_cantieri(cantieri_df)
-            st.success(f"❌ Mezzo '{id_mezzo}' rimosso con successo!")
-            st.session_state.clear()  # Ricarica la pagina
-    except Exception as e:
-        st.error(f"Errore durante la rimozione del mezzo: {e}")
+    
+    if id_mezzo in mezzi_ids:
+        mezzi_ids.remove(id_mezzo)
+        cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_attuale, "mezzi_assegnati"] = ",".join(mezzi_ids)
+    
+    mezzi_destinazione = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"].values[0]
+    if pd.isna(mezzi_destinazione) or mezzi_destinazione == "":
+        mezzi_destinazione = []
+    else:
+        mezzi_destinazione = mezzi_destinazione.split(",")
+    
+    mezzi_destinazione.append(id_mezzo)
+    cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"] = ",".join(mezzi_destinazione)
+    salva_cantieri(cantieri_df)
+    st.success(f"✅ Mezzo '{id_mezzo}' spostato con successo!")
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
 
 # Verifica che i DataFrame non siano vuoti
-if mezzi_df.empty:
-    st.warning("Il file 'mezzi.csv' è vuoto. Aggiungi almeno un mezzo.")
+if mezzi_df.empty or cantieri_df.empty:
+    st.error("I file CSV sono vuoti o non contengono dati validi.")
     st.stop()
 
-if cantieri_df.empty:
-    st.warning("Il file 'cantieri.csv' è vuoto. Aggiungi almeno un cantiere.")
-    st.stop()
+# Menu di Navigazione
+with st.sidebar:
+    selezione_pagina = st.radio("Navigazione", ["Home", "Gestione Mezzi", "Chiusura Cantiere"])
 
-# Interfaccia Mobile-Friendly
-st.title("🚧 Gestione Cantieri e Mezzi 🛠️")
+# Pagina Home
+if selezione_pagina == "Home":
+    st.title("🏗️ Cantieri Attivi")
+    cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
+    for _, cantiere in cantieri_aperti.iterrows():
+        st.subheader(f"Cantiere: {cantiere['nome_cantiere']}")
+        mezzi_assegnati_df = mostra_mezzi_assegnati(cantieri_df, mezzi_df, cantiere["id_cantiere"])
+        if not mezzi_assegnati_df.empty:
+            st.table(mezzi_assegnati_df)
+        else:
+            st.info("Nessun mezzo assegnato.")
 
-# Selezione del cantiere
-cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
-cantiere_selezionato = st.selectbox("🏗️ Seleziona il cantiere", cantieri_aperti["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
+# Pagina Gestione Mezzi
+elif selezione_pagina == "Gestione Mezzi":
+    st.title("🔄 Spostamento Mezzi")
+    mezzo_selezionato = st.selectbox("🚜 Seleziona il mezzo da spostare", mezzi_df["ID"].tolist(), format_func=lambda x: f"{x} - {mezzi_df[mezzi_df['ID'] == x]['Nome'].values[0]}")
+    cantiere_attuale = st.selectbox("🏗️ Cantiere Attuale", cantieri_df["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
+    cantiere_destinazione = st.selectbox("🏗️ Cantiere Destinazione", cantieri_df["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
 
-# Visualizzazione dei mezzi assegnati
-st.subheader("🚜 Mezzi Assegnati")
-mezzi_assegnati_df = mostra_mezzi_assegnati(cantieri_df, mezzi_df, cantiere_selezionato)
-if not mezzi_assegnati_df.empty:
-    st.table(mezzi_assegnati_df)
-else:
-    st.info("Nessun mezzo assegnato a questo cantiere.")
+    if st.button("Sposta Mezzo"):
+        sposta_mezzo(cantieri_df, mezzo_selezionato, cantiere_attuale, cantiere_destinazione)
 
-# Aggiunta di un mezzo al cantiere
-st.subheader("➕ Aggiungi Mezzo")
-categoria_mezzo = st.selectbox("🗂️ Categoria del mezzo", mezzi_df["Categoria"].unique())
-mezzi_filtrati = mezzi_df[mezzi_df["Categoria"] == categoria_mezzo]
-mezzo_selezionato = st.selectbox("🚜 Seleziona il mezzo", mezzi_filtrati.apply(lambda x: f"{x['ID']} - {x['Nome']}", axis=1).tolist())
-id_mezzo = mezzo_selezionato.split(" - ")[0]
-
-if st.button("Aggiungi Mezzo"):
-    aggiungi_mezzo(cantieri_df, cantiere_selezionato, id_mezzo)
-
-# Rimozione di un mezzo dal cantiere
-st.subheader("➖ Rimuovi Mezzo")
-if not mezzi_assegnati_df.empty:
-    mezzo_da_rimuovere = st.selectbox("🚜 Seleziona il mezzo da rimuovere", mezzi_assegnati_df.apply(lambda x: f"{x['ID']} - {x['Nome']}", axis=1).tolist())
-    id_mezzo_rimuovere = mezzo_da_rimuovere.split(" - ")[0]
-
-    if st.button("Rimuovi Mezzo"):
-        rimuovi_mezzo(cantieri_df, cantiere_selezionato, id_mezzo_rimuovere)
-
+# Pagina Chiusura Cantiere
+elif selezione_pagina == "Chiusura Cantiere":
+    st.title("🔒 Chiusura Cantiere")
+    cantiere_da_chiudere = st.selectbox("Seleziona il cantiere da chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
+    if st.button("Chiudi Cantiere"):
+        cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_da_chiudere, "stato"] = "Chiuso"
+        salva_cantieri(cantieri_df)
+        st.success(f"✅ Cantiere '{cantiere_da_chiudere}' chiuso con successo!")
