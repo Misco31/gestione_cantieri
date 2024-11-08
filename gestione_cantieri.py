@@ -22,64 +22,21 @@ def salva_cantieri(cantieri_df):
     except Exception as e:
         st.error(f"Errore durante il salvataggio dei dati: {e}")
 
-# Funzione per spostare un mezzo al cantiere di destinazione
-def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
-    # Rimuove il mezzo dal cantiere precedente
-    for index, row in cantieri_df.iterrows():
-        mezzi_ids = row["mezzi_assegnati"]
-        if pd.isna(mezzi_ids) or mezzi_ids == "":
-            mezzi_ids = []
-        else:
-            mezzi_ids = mezzi_ids.split(",")
-
-        if id_mezzo in mezzi_ids:
-            mezzi_ids.remove(id_mezzo)
-            cantieri_df.at[index, "mezzi_assegnati"] = ",".join(mezzi_ids)
-
-    # Aggiunge il mezzo al cantiere di destinazione
-    mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"].values[0]
-    if pd.isna(mezzi_ids) or mezzi_ids == "":
-        mezzi_ids = []
-    else:
-        mezzi_ids = mezzi_ids.split(",")
-
-    if id_mezzo not in mezzi_ids:
-        mezzi_ids.append(id_mezzo)
-        cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"] = ",".join(mezzi_ids)
-
-    # Ottiene il nome del cantiere di destinazione
-    nome_cantiere = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "nome_cantiere"].values[0]
-
-    # Salva i dati e mostra il messaggio di successo
-    salva_cantieri(cantieri_df)
-    st.success(f"✅ Mezzo '{id_mezzo}' spostato correttamente al cantiere '{nome_cantiere}'.")
-
-
-
-# Funzione per aggiungere un nuovo cantiere
-def aggiungi_cantiere(cantieri_df, nome):
-    try:
-        nuovo_id = int(cantieri_df["id_cantiere"].max()) + 1 if not cantieri_df.empty else 1
-        nuovo_cantiere = pd.DataFrame([{
-            "id_cantiere": nuovo_id,
-            "nome_cantiere": nome,
-            "stato": "Aperto",
-            "mezzi_assegnati": ""
-        }])
-        cantieri_df = pd.concat([cantieri_df, nuovo_cantiere], ignore_index=True)
-        salva_cantieri(cantieri_df)
-        st.success(f"✅ Cantiere '{nome}' aggiunto correttamente.")
-    except Exception as e:
-        st.error(f"Errore durante l'aggiunta del cantiere: {e}")
-
-# Funzione per chiudere un cantiere
-def chiudi_cantiere(cantieri_df, id_cantiere):
-    cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "stato"] = "Chiuso"
-    salva_cantieri(cantieri_df)
-    st.success(f"✅ Cantiere '{id_cantiere}' chiuso correttamente.")
+# Funzione per cambiare pagina
+def naviga(pagina):
+    st.session_state["pagina"] = pagina
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
+
+# Verifica se i dataframe sono vuoti
+if cantieri_df.empty:
+    st.warning("Il file 'cantieri.csv' è vuoto o non contiene dati validi.")
+    st.stop()
+
+if mezzi_df.empty:
+    st.warning("Il file 'mezzi.csv' è vuoto o non contiene dati validi.")
+    st.stop()
 
 # Imposta la pagina iniziale se non è già definita
 if "pagina" not in st.session_state:
@@ -89,35 +46,39 @@ if "pagina" not in st.session_state:
 with st.sidebar:
     st.title("Menu di Navigazione")
     if st.button("🏠 Home", key="home"):
-        st.session_state["pagina"] = "Home"
+        naviga("Home")
 
     if st.button("🔄 Sposta", key="sposta"):
-        st.session_state["pagina"] = "Gestione_Mezzi"
+        naviga("Gestione_Mezzi")
 
     if st.button("🏗️ Aggiungi", key="aggiungi"):
-        st.session_state["pagina"] = "Gestione_Cantieri"
+        naviga("Gestione_Cantieri")
 
 # Controllo dello stato della pagina
 pagina = st.session_state.get("pagina", "Home")
 
-# Pagina Home
+# Pagina Home: Visualizza tutti i mezzi con il cantiere associato
 if pagina == "Home":
-    st.title("🏗️ Cantieri Attivi")
-    cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
+    st.title("🚜 Elenco Mezzi")
 
-    if cantieri_aperti.empty:
-        st.info("Non ci sono cantieri attivi.")
-    else:
-        for _, cantiere in cantieri_aperti.iterrows():
-            st.markdown(f"📍 **{cantiere['nome_cantiere']}**")
+    for _, mezzo in mezzi_df.iterrows():
+        id_mezzo = mezzo["ID"]
+        nome_mezzo = mezzo["Nome"]
+
+        # Trova il cantiere associato al mezzo
+        cantiere_associato = "Non assegnato"
+        for _, cantiere in cantieri_df.iterrows():
             mezzi_assegnati = cantiere["mezzi_assegnati"]
             if pd.isna(mezzi_assegnati) or mezzi_assegnati == "":
-                st.markdown("*Nessun mezzo assegnato.*")
-            else:
-                mezzi_assegnati = mezzi_assegnati.split(",")
-                for mezzo_id in mezzi_assegnati:
-                    nome_mezzo = mezzi_df[mezzi_df["ID"] == mezzo_id]["Nome"].values[0]
-                    st.markdown(f"- 🚜 **{mezzo_id} - {nome_mezzo}**")
+                continue
+            mezzi_assegnati = mezzi_assegnati.split(",")
+            if id_mezzo in mezzi_assegnati:
+                cantiere_associato = cantiere["nome_cantiere"]
+                break
+
+        # Mostra il mezzo e il cantiere associato
+        st.markdown(f"**🆔 {id_mezzo} - {nome_mezzo}**")
+        st.markdown(f"- Cantiere: **{cantiere_associato}**")
 
 # Pagina Gestione Mezzi
 elif pagina == "Gestione_Mezzi":
@@ -138,3 +99,4 @@ elif pagina == "Gestione_Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+
