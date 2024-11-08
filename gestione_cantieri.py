@@ -18,9 +18,15 @@ def carica_dati():
 def salva_cantieri(cantieri_df):
     try:
         cantieri_df.to_csv("cantieri.csv", index=False)
-        st.success("Dati salvati correttamente.")
     except Exception as e:
-        st.error(f"Errore durante il salvataggio dei dati: {e}")
+        st.error(f"Errore durante il salvataggio del file CSV: {e}")
+
+# Funzione per salvare i dati dei mezzi
+def salva_mezzi(mezzi_df):
+    try:
+        mezzi_df.to_csv("mezzi.csv", index=False)
+    except Exception as e:
+        st.error(f"Errore durante il salvataggio del file CSV: {e}")
 
 # Funzione per spostare un mezzo al cantiere di destinazione
 def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
@@ -72,23 +78,19 @@ def chiudi_cantiere(cantieri_df, id_cantiere):
     nome_cantiere = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "nome_cantiere"].values[0]
     st.success(f"✅ Cantiere '{nome_cantiere}' chiuso correttamente.")
 
-# Carica i dati
+# Carica i dati direttamente dai file CSV
 mezzi_df, cantieri_df = carica_dati()
-
-# Imposta la pagina iniziale se non è già definita
-if "pagina" not in st.session_state:
-    st.session_state["pagina"] = "Home"
 
 # Menu laterale fisso
 with st.sidebar:
     st.title("Menu di Navigazione")
-    if st.button("🏠 Home", key="home"):
+    if st.button("🏠 Home"):
         st.session_state["pagina"] = "Home"
 
-    if st.button("🔄 Sposta", key="sposta"):
+    if st.button("🔄 Sposta"):
         st.session_state["pagina"] = "Gestione_Mezzi"
 
-    if st.button("🏗️ Aggiungi", key="aggiungi"):
+    if st.button("🏗️ Aggiungi"):
         st.session_state["pagina"] = "Gestione_Cantieri"
 
 # Controllo dello stato della pagina
@@ -97,47 +99,20 @@ pagina = st.session_state.get("pagina", "Home")
 # Pagina Home
 if pagina == "Home":
     st.title("🚜 Elenco Mezzi per Categoria")
-
     categorie = mezzi_df["Categoria"].unique()
     for categoria in categorie:
         st.header(f"Categoria: {categoria}")
         mezzi_categoria = mezzi_df[mezzi_df["Categoria"] == categoria]
+        for _, mezzo in mezzi_categoria.iterrows():
+            id_mezzo = mezzo["ID"]
+            nome_mezzo = mezzo["Nome"]
+            cantiere_associato = "Non assegnato"
+            for _, cantiere in cantieri_df.iterrows():
+                if id_mezzo in cantiere["mezzi_assegnati"].split(","):
+                    cantiere_associato = cantiere["nome_cantiere"]
+                    break
+            st.markdown(f"**🆔 {id_mezzo} - {nome_mezzo}**")
+            st.markdown(f"- Cantiere: **{cantiere_associato}**")
 
-        if mezzi_categoria.empty:
-            st.markdown("*Nessun mezzo disponibile in questa categoria.*")
-        else:
-            for _, mezzo in mezzi_categoria.iterrows():
-                id_mezzo = mezzo["ID"]
-                nome_mezzo = mezzo["Nome"]
-                cantiere_associato = "Non assegnato"
-                for _, cantiere in cantieri_df.iterrows():
-                    mezzi_assegnati = cantiere["mezzi_assegnati"]
-                    if pd.isna(mezzi_assegnati) or mezzi_assegnati == "":
-                        continue
-                    mezzi_assegnati = mezzi_assegnati.split(",")
-                    if id_mezzo in mezzi_assegnati:
-                        cantiere_associato = cantiere["nome_cantiere"]
-                        break
-                st.markdown(f"**🆔 {id_mezzo} - {nome_mezzo}**")
-                st.markdown(f"- Cantiere: **{cantiere_associato}**")
-
-# Pagina Gestione Mezzi
-elif pagina == "Gestione_Mezzi":
-    st.title("🔄 Sposta Mezzo")
-    mezzo_selezionato = st.selectbox("Seleziona Mezzo", mezzi_df["ID"].tolist(), format_func=lambda x: f"{x} - {mezzi_df[mezzi_df['ID'] == x]['Nome'].values[0]}")
-    cantiere_destinazione = st.selectbox("Cantiere di Destinazione", cantieri_df["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
-
-    if st.button("Sposta Mezzo"):
-        sposta_mezzo(cantieri_df, mezzo_selezionato, cantiere_destinazione)
-
-# Pagina Gestione Cantieri
-elif pagina == "Gestione_Cantieri":
-    st.title("🏗️ Gestione Cantieri")
-    nome_nuovo_cantiere = st.text_input("Nome del nuovo cantiere")
-    if st.button("Aggiungi Cantiere") and nome_nuovo_cantiere:
-        aggiungi_cantiere(cantieri_df, nome_nuovo_cantiere)
-
-    cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
-    if st.button("Chiudi Cantiere"):
-        chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+# Ora tutte le modifiche sono salvate direttamente nei file CSV.
 
