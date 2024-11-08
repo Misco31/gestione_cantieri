@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Configurazione dell'app per dispositivi mobili
-st.set_page_config(page_title="Gestione Cantieri", layout="centered")
+st.set_page_config(page_title="Gestione Cantieri", layout="wide")
 
 # Funzione per caricare i dati dai file CSV
 def carica_dati():
@@ -25,54 +25,32 @@ def salva_cantieri(cantieri_df):
 def naviga(pagina):
     st.session_state["pagina"] = pagina
 
+# Carica i dati
+mezzi_df, cantieri_df = carica_dati()
+
+# Verifica se i dataframe sono vuoti
+if cantieri_df.empty:
+    st.warning("Il file 'cantieri.csv' è vuoto o non contiene dati validi.")
+    st.stop()
+
+if mezzi_df.empty:
+    st.warning("Il file 'mezzi.csv' è vuoto o non contiene dati validi.")
+    st.stop()
+
 # Imposta la pagina iniziale se non è già definita
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Layout dei bottoni di navigazione orizzontali usando Streamlit
-st.markdown(
-    """
-    <style>
-    .button-container {
-        display: flex;
-        justify-content: space-evenly;
-        margin-bottom: 20px;
-    }
-    .button {
-        font-size: 36px;
-        padding: 10px;
-        width: 80px;
-        height: 80px;
-        border: none;
-        border-radius: 10px;
-        background-color: #e0e0e0;
-        cursor: pointer;
-        transition: background-color 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .button:hover {
-        background-color: #d0d0d0;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Creazione dei bottoni di navigazione in linea
-col1, col2, col3 = st.columns([1, 1, 1])
-
-with col1:
-    if st.button("🏠", key="home"):
+# Menu laterale fisso
+with st.sidebar:
+    st.title("Menu di Navigazione")
+    if st.button("🏠 Home", key="home"):
         naviga("Home")
 
-with col2:
-    if st.button("🔄", key="sposta"):
+    if st.button("🔄 Sposta", key="sposta"):
         naviga("Gestione_Mezzi")
 
-with col3:
-    if st.button("🏗️", key="aggiungi"):
+    if st.button("🏗️ Aggiungi", key="aggiungi"):
         naviga("Gestione_Cantieri")
 
 # Controllo dello stato della pagina
@@ -81,7 +59,6 @@ pagina = st.session_state.get("pagina", "Home")
 # Pagina Home
 if pagina == "Home":
     st.title("🏗️ Cantieri Attivi")
-    mezzi_df, cantieri_df = carica_dati()
     cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
 
     if cantieri_aperti.empty:
