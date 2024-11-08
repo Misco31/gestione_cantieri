@@ -41,17 +41,18 @@ if mezzi_df.empty:
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Layout per i bottoni di navigazione in linea orizzontale
+# Layout dei bottoni di navigazione orizzontali usando HTML e CSS
 st.markdown(
     """
     <style>
-    .button-container {
+    .nav-bar {
         display: flex;
-        justify-content: center;
-        gap: 30px;
+        justify-content: space-evenly;
+        align-items: center;
         margin-bottom: 20px;
+        gap: 20px;
     }
-    .button {
+    .nav-button {
         font-size: 36px;
         padding: 10px;
         border: none;
@@ -59,30 +60,29 @@ st.markdown(
         background-color: #e0e0e0;
         border-radius: 10px;
         transition: background-color 0.3s;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
-    .button:hover {
+    .nav-button:hover {
         background-color: #d0d0d0;
     }
     </style>
+    <div class="nav-bar">
+        <button class="nav-button" onclick="window.location.href='/?pagina=Home'">🏠</button>
+        <button class="nav-button" onclick="window.location.href='/?pagina=Gestione_Mezzi'">🔄</button>
+        <button class="nav-button" onclick="window.location.href='/?pagina=Gestione_Cantieri'">🏗️</button>
+    </div>
     """,
     unsafe_allow_html=True
 )
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("🏠", key="home"):
-        naviga("Home")
-
-with col2:
-    if st.button("🔄", key="sposta"):
-        naviga("Gestione_Mezzi")
-
-with col3:
-    if st.button("🏗️", key="aggiungi"):
-        naviga("Gestione_Cantieri")
-
 # Controllo dello stato della pagina
+if st.experimental_get_query_params().get("pagina"):
+    st.session_state["pagina"] = st.experimental_get_query_params().get("pagina")[0]
+
 pagina = st.session_state.get("pagina", "Home")
 
 # Pagina Home
