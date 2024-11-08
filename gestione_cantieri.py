@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Configurazione dell'app per dispositivi mobili
-st.set_page_config(page_title="Gestione Cantieri", layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Gestione Cantieri", layout="centered", initial_sidebar_state="collapsed")
 
 # Funzione per caricare i dati dai file CSV
 def carica_dati():
@@ -32,10 +32,19 @@ def mostra_mezzi_assegnati(cantieri_df, mezzi_df, id_cantiere):
 
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
-    nuovo_id = str(cantieri_df["id_cantiere"].max() + 1) if not cantieri_df.empty else "1"
-    cantieri_df.loc[len(cantieri_df)] = [nuovo_id, nome, "Aperto", ""]
-    salva_cantieri(cantieri_df)
-    st.success(f"✅ Cantiere '{nome}' aggiunto con successo!")
+    try:
+        nuovo_id = int(cantieri_df["id_cantiere"].max()) + 1 if not cantieri_df.empty else 1
+        nuovo_cantiere = {
+            "id_cantiere": nuovo_id,
+            "nome_cantiere": nome,
+            "stato": "Aperto",
+            "mezzi_assegnati": ""
+        }
+        cantieri_df = cantieri_df.append(nuovo_cantiere, ignore_index=True)
+        salva_cantieri(cantieri_df)
+        st.success(f"✅ Cantiere '{nome}' aggiunto con successo!")
+    except Exception as e:
+        st.error(f"Errore durante l'aggiunta del cantiere: {e}")
 
 # Funzione per chiudere un cantiere
 def chiudi_cantiere(cantieri_df, id_cantiere):
@@ -51,13 +60,21 @@ if mezzi_df.empty or cantieri_df.empty:
     st.error("I file CSV sono vuoti o non contengono dati validi.")
     st.stop()
 
-# Menu di Navigazione User-Friendly
-with st.sidebar:
-    st.markdown("### 📋 Menu di Navigazione")
-    selezione_pagina = st.selectbox("Scegli una sezione", ["🏠 Home", "🔄 Gestione Mezzi", "🏗️ Cantieri"])
+# Menu di Navigazione User-Friendly con pulsanti
+st.sidebar.markdown("### 📋 Menu di Navigazione")
+if st.sidebar.button("🏠 Home"):
+    st.session_state["pagina"] = "Home"
+if st.sidebar.button("🔄 Gestione Mezzi"):
+    st.session_state["pagina"] = "Gestione Mezzi"
+if st.sidebar.button("🏗️ Cantieri"):
+    st.session_state["pagina"] = "Cantieri"
+
+# Imposta la pagina iniziale
+if "pagina" not in st.session_state:
+    st.session_state["pagina"] = "Home"
 
 # Pagina Home
-if selezione_pagina == "🏠 Home":
+if st.session_state["pagina"] == "Home":
     st.title("🏗️ Cantieri Attivi")
     cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
 
@@ -77,7 +94,7 @@ if selezione_pagina == "🏠 Home":
             st.markdown("---")
 
 # Pagina Gestione Mezzi
-elif selezione_pagina == "🔄 Gestione Mezzi":
+elif st.session_state["pagina"] == "Gestione Mezzi":
     st.title("🔄 Spostamento Mezzi")
     mezzo_selezionato = st.selectbox("🚜 Seleziona il mezzo da spostare", mezzi_df["ID"].tolist(), format_func=lambda x: f"{x} - {mezzi_df[mezzi_df['ID'] == x]['Nome'].values[0]}")
     cantiere_attuale = st.selectbox("🏗️ Cantiere Attuale", cantieri_df["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
@@ -87,7 +104,7 @@ elif selezione_pagina == "🔄 Gestione Mezzi":
         sposta_mezzo(cantieri_df, mezzo_selezionato, cantiere_attuale, cantiere_destinazione)
 
 # Pagina Cantieri
-elif selezione_pagina == "🏗️ Cantieri":
+elif st.session_state["pagina"] == "Cantieri":
     st.title("🏗️ Gestione Cantieri")
 
     # Aggiungi un nuovo cantiere
@@ -101,5 +118,3 @@ elif selezione_pagina == "🏗️ Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona il cantiere da chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
-
-
