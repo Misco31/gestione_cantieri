@@ -76,10 +76,14 @@ mezzi_df, cantieri_df = carica_dati()
 st.sidebar.markdown("### 📋 Menu di Navigazione")
 if st.sidebar.button("🏠 Home"):
     st.session_state["pagina"] = "Home"
+    st.set_page_config(initial_sidebar_state="collapsed")
 if st.sidebar.button("🔄 Gestione Mezzi"):
     st.session_state["pagina"] = "Gestione Mezzi"
+    st.set_page_config(initial_sidebar_state="collapsed")
 if st.sidebar.button("🏗️ Gestione Cantieri"):
     st.session_state["pagina"] = "Gestione Cantieri"
+    st.set_page_config(initial_sidebar_state="collapsed")
+
 
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
