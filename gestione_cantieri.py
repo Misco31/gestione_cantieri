@@ -57,28 +57,38 @@ with st.sidebar:
 # Controllo dello stato della pagina
 pagina = st.session_state.get("pagina", "Home")
 
-# Pagina Home: Visualizza tutti i mezzi con il cantiere associato
+# Pagina Home: Visualizza i mezzi raggruppati per categoria
 if pagina == "Home":
-    st.title("🚜 Elenco Mezzi")
+    st.title("🚜 Elenco Mezzi per Categoria")
 
-    for _, mezzo in mezzi_df.iterrows():
-        id_mezzo = mezzo["ID"]
-        nome_mezzo = mezzo["Nome"]
+    # Raggruppa i mezzi per categoria
+    categorie = mezzi_df["Categoria"].unique()
 
-        # Trova il cantiere associato al mezzo
-        cantiere_associato = "Non assegnato"
-        for _, cantiere in cantieri_df.iterrows():
-            mezzi_assegnati = cantiere["mezzi_assegnati"]
-            if pd.isna(mezzi_assegnati) or mezzi_assegnati == "":
-                continue
-            mezzi_assegnati = mezzi_assegnati.split(",")
-            if id_mezzo in mezzi_assegnati:
-                cantiere_associato = cantiere["nome_cantiere"]
-                break
+    for categoria in categorie:
+        st.header(f"Categoria: {categoria}")
+        mezzi_categoria = mezzi_df[mezzi_df["Categoria"] == categoria]
 
-        # Mostra il mezzo e il cantiere associato
-        st.markdown(f"**🆔 {id_mezzo} - {nome_mezzo}**")
-        st.markdown(f"- Cantiere: **{cantiere_associato}**")
+        if mezzi_categoria.empty:
+            st.markdown("*Nessun mezzo disponibile in questa categoria.*")
+        else:
+            for _, mezzo in mezzi_categoria.iterrows():
+                id_mezzo = mezzo["ID"]
+                nome_mezzo = mezzo["Nome"]
+
+                # Trova il cantiere associato al mezzo
+                cantiere_associato = "Non assegnato"
+                for _, cantiere in cantieri_df.iterrows():
+                    mezzi_assegnati = cantiere["mezzi_assegnati"]
+                    if pd.isna(mezzi_assegnati) or mezzi_assegnati == "":
+                        continue
+                    mezzi_assegnati = mezzi_assegnati.split(",")
+                    if id_mezzo in mezzi_assegnati:
+                        cantiere_associato = cantiere["nome_cantiere"]
+                        break
+
+                # Mostra il mezzo e il cantiere associato
+                st.markdown(f"**🆔 {id_mezzo} - {nome_mezzo}**")
+                st.markdown(f"- Cantiere: **{cantiere_associato}**")
 
 # Pagina Gestione Mezzi
 elif pagina == "Gestione_Mezzi":
@@ -99,4 +109,3 @@ elif pagina == "Gestione_Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
-
