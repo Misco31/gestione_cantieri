@@ -79,7 +79,7 @@ mezzi_df, cantieri_df = carica_dati()
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Barra di navigazione compatta in linea
+# Barra di navigazione fissa in linea
 st.markdown(
     """
     <style>
@@ -94,25 +94,19 @@ st.markdown(
         border-top: 1px solid #ccc;
     }
     .bottom-bar button {
-        width: 30%;
+        flex: 1;
         font-size: 18px;
+        margin: 0 5px;
     }
     </style>
+    <div class="bottom-bar">
+        <button onclick="window.location.href='/Home'">🏠 Home</button>
+        <button onclick="window.location.href='/Gestione_Mezzi'">🔄 Gestione Mezzi</button>
+        <button onclick="window.location.href='/Gestione_Cantieri'">🏗️ Gestione Cantieri</button>
+    </div>
     """,
     unsafe_allow_html=True
 )
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("🏠 Home"):
-        st.session_state["pagina"] = "Home"
-with col2:
-    if st.button("🔄 Gestione Mezzi"):
-        st.session_state["pagina"] = "Gestione Mezzi"
-with col3:
-    if st.button("🏗️ Gestione Cantieri"):
-        st.session_state["pagina"] = "Gestione Cantieri"
 
 # Pagina Home
 if st.session_state["pagina"] == "Home":
@@ -152,3 +146,4 @@ elif st.session_state["pagina"] == "Gestione Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+
