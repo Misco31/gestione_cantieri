@@ -86,20 +86,33 @@ st.markdown(
     .nav-bar {
         display: flex;
         justify-content: center;
-        gap: 30px;
-        padding: 10px;
+        gap: 50px;
+        padding: 20px;
     }
     .nav-bar button {
-        font-size: 24px;
+        font-size: 32px;
         background: none;
         border: none;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .nav-bar button span {
+        font-size: 16px;
+        margin-top: 5px;
     }
     </style>
     <div class="nav-bar">
-        <button onclick="window.location.href='?pagina=Home'">🏠</button>
-        <button onclick="window.location.href='?pagina=Gestione_Mezzi'">🔄</button>
-        <button onclick="window.location.href='?pagina=Gestione_Cantieri'">🏗️</button>
+        <button onclick="window.location.href='?pagina=Home'">
+            🏠<span>Home</span>
+        </button>
+        <button onclick="window.location.href='?pagina=Gestione_Mezzi'">
+            🔄<span>Sposta</span>
+        </button>
+        <button onclick="window.location.href='?pagina=Gestione_Cantieri'">
+            🏗️<span>Aggiungi</span>
+        </button>
     </div>
     """,
     unsafe_allow_html=True
@@ -147,3 +160,4 @@ elif st.session_state["pagina"] == "Gestione Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+
