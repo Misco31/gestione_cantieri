@@ -79,7 +79,29 @@ mezzi_df, cantieri_df = carica_dati()
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Menu fisso nella parte inferiore
+# Barra di navigazione compatta in linea
+st.markdown(
+    """
+    <style>
+    .bottom-bar {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-evenly;
+        background-color: #f0f0f0;
+        padding: 10px 0;
+        border-top: 1px solid #ccc;
+    }
+    .bottom-bar button {
+        width: 30%;
+        font-size: 18px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
