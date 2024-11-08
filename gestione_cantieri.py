@@ -22,8 +22,9 @@ def salva_cantieri(cantieri_df):
     except Exception as e:
         st.error(f"Errore durante il salvataggio dei dati: {e}")
 
-# Funzione per spostare un mezzo
+# Funzione per spostare un mezzo al cantiere di destinazione
 def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
+    # Rimuove il mezzo dal cantiere precedente
     for index, row in cantieri_df.iterrows():
         mezzi_ids = row["mezzi_assegnati"]
         if pd.isna(mezzi_ids) or mezzi_ids == "":
@@ -35,6 +36,7 @@ def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
             mezzi_ids.remove(id_mezzo)
             cantieri_df.at[index, "mezzi_assegnati"] = ",".join(mezzi_ids)
 
+    # Aggiunge il mezzo al cantiere di destinazione
     mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"].values[0]
     if pd.isna(mezzi_ids) or mezzi_ids == "":
         mezzi_ids = []
@@ -45,8 +47,14 @@ def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
         mezzi_ids.append(id_mezzo)
         cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"] = ",".join(mezzi_ids)
 
+    # Ottiene il nome del cantiere di destinazione
+    nome_cantiere = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "nome_cantiere"].values[0]
+
+    # Salva i dati e mostra il messaggio di successo
     salva_cantieri(cantieri_df)
-    st.success(f"✅ Mezzo '{id_mezzo}' spostato correttamente al cantiere '{cantiere_destinazione}'.")
+    st.success(f"✅ Mezzo '{id_mezzo}' spostato correttamente al cantiere '{nome_cantiere}'.")
+
+
 
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
