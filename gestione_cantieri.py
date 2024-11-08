@@ -47,7 +47,6 @@ def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
     salva_cantieri(cantieri_df)
     st.success(f"✅ Mezzo '{id_mezzo}' spostato correttamente al cantiere '{cantiere_destinazione}'.")
     st.session_state["pagina"] = "Home"
-    st.experimental_rerun()
 
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
@@ -63,7 +62,6 @@ def aggiungi_cantiere(cantieri_df, nome):
         salva_cantieri(cantieri_df)
         st.success(f"✅ Cantiere '{nome}' aggiunto correttamente.")
         st.session_state["pagina"] = "Home"
-        st.experimental_rerun()
     except Exception as e:
         st.error(f"Errore durante l'aggiunta del cantiere: {e}")
 
@@ -73,7 +71,6 @@ def chiudi_cantiere(cantieri_df, id_cantiere):
     salva_cantieri(cantieri_df)
     st.success(f"✅ Cantiere '{id_cantiere}' chiuso correttamente.")
     st.session_state["pagina"] = "Home"
-    st.experimental_rerun()
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
@@ -128,5 +125,3 @@ elif st.session_state["pagina"] == "Gestione Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
-
-
