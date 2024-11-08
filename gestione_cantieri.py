@@ -48,7 +48,8 @@ def sposta_mezzo(cantieri_df, id_mezzo, cantiere_destinazione):
 
     salva_cantieri(cantieri_df)
     st.success(f"✅ Mezzo '{id_mezzo}' spostato al cantiere '{cantiere_destinazione}'.")
-    st.experimental_rerun()
+    st.session_state.clear()
+
 
 # Funzione per aggiungere un nuovo cantiere
 def aggiungi_cantiere(cantieri_df, nome):
@@ -63,9 +64,10 @@ def aggiungi_cantiere(cantieri_df, nome):
         cantieri_df = pd.concat([cantieri_df, nuovo_cantiere], ignore_index=True)
         salva_cantieri(cantieri_df)
         st.success(f"✅ Cantiere '{nome}' aggiunto correttamente.")
-        st.experimental_rerun()
+        st.session_state.clear()
     except Exception as e:
         st.error(f"Errore durante l'aggiunta del cantiere: {e}")
+
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
