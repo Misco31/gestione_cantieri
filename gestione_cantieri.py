@@ -41,19 +41,45 @@ if mezzi_df.empty:
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Layout per i bottoni di navigazione
+# Layout per i bottoni di navigazione in linea orizzontale
+st.markdown(
+    """
+    <style>
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 20px;
+    }
+    .button {
+        font-size: 36px;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        transition: background-color 0.3s;
+    }
+    .button:hover {
+        background-color: #d0d0d0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("🏠"):
+    if st.button("🏠 Home", key="home"):
         naviga("Home")
 
 with col2:
-    if st.button("🔄"):
+    if st.button("🔄 Sposta", key="sposta"):
         naviga("Gestione_Mezzi")
 
 with col3:
-    if st.button("🏗️"):
+    if st.button("🏗️ Aggiungi", key="aggiungi"):
         naviga("Gestione_Cantieri")
 
 # Controllo dello stato della pagina
