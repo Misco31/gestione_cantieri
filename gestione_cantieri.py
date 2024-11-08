@@ -25,33 +25,10 @@ def salva_cantieri(cantieri_df):
 def mostra_mezzi_assegnati(cantieri_df, mezzi_df, id_cantiere):
     mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == id_cantiere, "mezzi_assegnati"].values
     if len(mezzi_ids) == 0 or pd.isna(mezzi_ids[0]) or mezzi_ids[0] == "":
-        return pd.DataFrame(columns=["ID", "Nome"])
+        return []
     mezzi_ids = mezzi_ids[0].split(",")
     mezzi_assegnati = mezzi_df[mezzi_df["ID"].isin(mezzi_ids)]
-    return mezzi_assegnati[["ID", "Nome"]]
-
-# Funzione per spostare un mezzo in un altro cantiere
-def sposta_mezzo(cantieri_df, id_mezzo, cantiere_attuale, cantiere_destinazione):
-    mezzi_ids = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_attuale, "mezzi_assegnati"].values[0]
-    if pd.isna(mezzi_ids) or mezzi_ids == "":
-        mezzi_ids = []
-    else:
-        mezzi_ids = mezzi_ids.split(",")
-    
-    if id_mezzo in mezzi_ids:
-        mezzi_ids.remove(id_mezzo)
-        cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_attuale, "mezzi_assegnati"] = ",".join(mezzi_ids)
-    
-    mezzi_destinazione = cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"].values[0]
-    if pd.isna(mezzi_destinazione) or mezzi_destinazione == "":
-        mezzi_destinazione = []
-    else:
-        mezzi_destinazione = mezzi_destinazione.split(",")
-    
-    mezzi_destinazione.append(id_mezzo)
-    cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_destinazione, "mezzi_assegnati"] = ",".join(mezzi_destinazione)
-    salva_cantieri(cantieri_df)
-    st.success(f"✅ Mezzo '{id_mezzo}' spostato con successo!")
+    return mezzi_assegnati[["ID", "Nome"]].to_dict(orient="records")
 
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
@@ -69,13 +46,21 @@ with st.sidebar:
 if selezione_pagina == "Home":
     st.title("🏗️ Cantieri Attivi")
     cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
-    for _, cantiere in cantieri_aperti.iterrows():
-        st.subheader(f"Cantiere: {cantiere['nome_cantiere']}")
-        mezzi_assegnati_df = mostra_mezzi_assegnati(cantieri_df, mezzi_df, cantiere["id_cantiere"])
-        if not mezzi_assegnati_df.empty:
-            st.table(mezzi_assegnati_df)
-        else:
-            st.info("Nessun mezzo assegnato.")
+
+    if cantieri_aperti.empty:
+        st.info("Non ci sono cantieri attivi.")
+    else:
+        for _, cantiere in cantieri_aperti.iterrows():
+            st.markdown(f"### 📍 Cantiere: **{cantiere['nome_cantiere']}**")
+            mezzi_assegnati = mostra_mezzi_assegnati(cantieri_df, mezzi_df, cantiere["id_cantiere"])
+
+            if not mezzi_assegnati:
+                st.markdown("*Nessun mezzo assegnato.*")
+            else:
+                for mezzo in mezzi_assegnati:
+                    st.markdown(f"- 🚜 **{mezzo['ID']} - {mezzo['Nome']}**")
+
+            st.markdown("---")
 
 # Pagina Gestione Mezzi
 elif selezione_pagina == "Gestione Mezzi":
@@ -95,3 +80,4 @@ elif selezione_pagina == "Chiusura Cantiere":
         cantieri_df.loc[cantieri_df["id_cantiere"] == cantiere_da_chiudere, "stato"] = "Chiuso"
         salva_cantieri(cantieri_df)
         st.success(f"✅ Cantiere '{cantiere_da_chiudere}' chiuso con successo!")
+
