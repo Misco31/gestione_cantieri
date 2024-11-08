@@ -25,69 +25,63 @@ def salva_cantieri(cantieri_df):
 def naviga(pagina):
     st.session_state["pagina"] = pagina
 
-# Carica i dati
-mezzi_df, cantieri_df = carica_dati()
-
-# Verifica se i dataframe sono vuoti
-if cantieri_df.empty:
-    st.warning("Il file 'cantieri.csv' è vuoto o non contiene dati validi.")
-    st.stop()
-
-if mezzi_df.empty:
-    st.warning("Il file 'mezzi.csv' è vuoto o non contiene dati validi.")
-    st.stop()
-
 # Imposta la pagina iniziale se non è già definita
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
 
-# Layout dei bottoni di navigazione orizzontali usando HTML e CSS
+# Layout dei bottoni di navigazione orizzontali usando Streamlit
 st.markdown(
     """
     <style>
-    .nav-bar {
+    .button-container {
         display: flex;
         justify-content: space-evenly;
-        align-items: center;
         margin-bottom: 20px;
-        gap: 20px;
     }
-    .nav-button {
+    .button {
         font-size: 36px;
         padding: 10px;
+        width: 80px;
+        height: 80px;
         border: none;
-        cursor: pointer;
-        background-color: #e0e0e0;
         border-radius: 10px;
+        background-color: #e0e0e0;
+        cursor: pointer;
         transition: background-color 0.3s;
-        width: 60px;
-        height: 60px;
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
     }
-    .nav-button:hover {
+    .button:hover {
         background-color: #d0d0d0;
     }
     </style>
-    <div class="nav-bar">
-        <button class="nav-button" onclick="window.location.href='/?pagina=Home'">🏠</button>
-        <button class="nav-button" onclick="window.location.href='/?pagina=Gestione_Mezzi'">🔄</button>
-        <button class="nav-button" onclick="window.location.href='/?pagina=Gestione_Cantieri'">🏗️</button>
-    </div>
     """,
     unsafe_allow_html=True
 )
 
-# Controllo dello stato della pagina
-if st.experimental_get_query_params().get("pagina"):
-    st.session_state["pagina"] = st.experimental_get_query_params().get("pagina")[0]
+# Creazione dei bottoni di navigazione in linea
+col1, col2, col3 = st.columns([1, 1, 1])
 
+with col1:
+    if st.button("🏠", key="home"):
+        naviga("Home")
+
+with col2:
+    if st.button("🔄", key="sposta"):
+        naviga("Gestione_Mezzi")
+
+with col3:
+    if st.button("🏗️", key="aggiungi"):
+        naviga("Gestione_Cantieri")
+
+# Controllo dello stato della pagina
 pagina = st.session_state.get("pagina", "Home")
 
 # Pagina Home
 if pagina == "Home":
     st.title("🏗️ Cantieri Attivi")
+    mezzi_df, cantieri_df = carica_dati()
     cantieri_aperti = cantieri_df[cantieri_df["stato"] == "Aperto"]
 
     if cantieri_aperti.empty:
