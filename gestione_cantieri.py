@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Configurazione dell'app per dispositivi mobili
-st.set_page_config(page_title="Gestione Cantieri", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Gestione Cantieri", layout="centered")
 
 # Funzione per caricare i dati dai file CSV
 def carica_dati():
@@ -75,17 +75,22 @@ def chiudi_cantiere(cantieri_df, id_cantiere):
 # Carica i dati
 mezzi_df, cantieri_df = carica_dati()
 
-# Menu di Navigazione
-st.sidebar.markdown("### 📋 Menu di Navigazione")
-if st.sidebar.button("🏠 Home"):
-    st.session_state["pagina"] = "Home"
-if st.sidebar.button("🔄 Gestione Mezzi"):
-    st.session_state["pagina"] = "Gestione Mezzi"
-if st.sidebar.button("🏗️ Gestione Cantieri"):
-    st.session_state["pagina"] = "Gestione Cantieri"
-
+# Imposta la pagina iniziale se non è già definita
 if "pagina" not in st.session_state:
     st.session_state["pagina"] = "Home"
+
+# Menu fisso nella parte inferiore
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    if st.button("🏠 Home"):
+        st.session_state["pagina"] = "Home"
+with col2:
+    if st.button("🔄 Gestione Mezzi"):
+        st.session_state["pagina"] = "Gestione Mezzi"
+with col3:
+    if st.button("🏗️ Gestione Cantieri"):
+        st.session_state["pagina"] = "Gestione Cantieri"
 
 # Pagina Home
 if st.session_state["pagina"] == "Home":
