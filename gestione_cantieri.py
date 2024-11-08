@@ -83,20 +83,40 @@ if "pagina" not in st.session_state:
 def naviga(pagina):
     st.session_state["pagina"] = pagina
 
-# Barra di navigazione
-col1, col2, col3 = st.columns(3)
+# Layout per i bottoni di navigazione
+st.markdown(
+    """
+    <style>
+    .nav-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .nav-buttons button {
+        font-size: 18px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .nav-buttons button:hover {
+        background-color: #f0f0f0;
+    }
+    </style>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='?pagina=Home'">🏠 Home</button>
+        <button onclick="window.location.href='?pagina=Gestione_Mezzi'">🔄 Sposta</button>
+        <button onclick="window.location.href='?pagina=Gestione_Cantieri'">🏗️ Aggiungi</button>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-with col1:
-    if st.button("🏠 Home"):
-        naviga("Home")
-
-with col2:
-    if st.button("🔄 Sposta"):
-        naviga("Gestione_Mezzi")
-
-with col3:
-    if st.button("🏗️ Aggiungi"):
-        naviga("Gestione_Cantieri")
+# Aggiorna la pagina in base al valore di st.session_state
+if st.experimental_get_query_params().get("pagina"):
+    st.session_state["pagina"] = st.experimental_get_query_params().get("pagina")[0]
 
 # Pagina Home
 if st.session_state["pagina"] == "Home":
@@ -136,4 +156,5 @@ elif st.session_state["pagina"] == "Gestione_Cantieri":
     cantiere_da_chiudere = st.selectbox("Seleziona Cantiere da Chiudere", cantieri_df[cantieri_df["stato"] == "Aperto"]["id_cantiere"].tolist(), format_func=lambda x: cantieri_df[cantieri_df["id_cantiere"] == x]["nome_cantiere"].values[0])
     if st.button("Chiudi Cantiere"):
         chiudi_cantiere(cantieri_df, cantiere_da_chiudere)
+
 
